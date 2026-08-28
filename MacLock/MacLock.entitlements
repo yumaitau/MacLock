@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Hardened runtime resource access. Without this, macOS refuses to even show
+	     the Location prompt for a hardened-runtime app - locationd logs "Client has
+	     supported the hardened runtime but doesn't have the entitlement, not sending
+	     #AuthPrompt message to #CoreLocationAgent" and the request vanishes with no
+	     dialog and no error. MacLock needs the permission, not a location: macOS
+	     classes the name of the Wi-Fi network you are joined to as location data, and
+	     without it CWInterface.ssid() returns nil forever. -->
+	<key>com.apple.security.personal-information.location</key>
+	<true/>
+</dict>
+</plist>

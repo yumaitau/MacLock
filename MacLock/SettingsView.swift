@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-/// Device selection and calibration.
+/// Device selection and calibration, and the networks MacLock stands down on.
 ///
 /// This is a window rather than a popover on purpose: calibrating the threshold
 /// means walking away while watching the live reading, and a popover closes the
@@ -13,9 +13,21 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var settings: AppSettings
     var monitor: WatchMonitor
+    var wifi: WiFiMonitor
     var controller: MacLockController
 
     var body: some View {
+        TabView {
+            watchTab
+                .tabItem { Label("Watch", systemImage: "applewatch") }
+
+            TrustedNetworksView(settings: settings, wifi: wifi)
+                .tabItem { Label("Networks", systemImage: "wifi") }
+        }
+        .frame(width: 480, height: 720)
+    }
+
+    private var watchTab: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Your Watch")
                 .font(.headline)
@@ -54,7 +66,7 @@ struct SettingsView: View {
                 .font(.subheadline)
         }
         .padding(20)
-        .frame(width: 480, height: 720)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onAppear {
             monitor.startScanning()
             settings.launchAtLogin = LaunchAtLogin.isEnabled

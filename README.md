@@ -12,6 +12,7 @@ range.
 - macOS 26.5 or later, on a Mac with Bluetooth Low Energy
 - An Apple Watch **signed into the same Apple ID as the Mac**
 - Xcode 26.6 (Swift 6.3) to build
+- Location access, but only if you want *trusted networks* below
 
 The same-Apple-ID requirement is not a preference. Bluetooth devices rotate their
 private address roughly every fifteen minutes to prevent tracking; macOS resolves an
@@ -41,6 +42,9 @@ MacLock lives only in the menu bar — there is no Dock icon and no main window.
    orange once it sits below the threshold, which is the state that starts the
    countdown.
 
+5. Optionally, open **Networks** and name the Wi-Fi networks you do not want guarding
+   on. See *Networks you do not need guarding on* below.
+
 Your choice and settings persist across relaunches.
 
 ## Settings
@@ -50,6 +54,7 @@ Your choice and settings persist across relaunches.
 | Lock below | -75 dBm | Signal strength at or above which the watch counts as nearby. |
 | Wait after the signal drops | 5 s | How long the signal must stay below the threshold before locking. Absorbs momentary dips. |
 | Lock after no signal at all | 30 s | Separate, longer timeout for the watch disappearing entirely — powered off, out of radio range, or interfered with. |
+| Trusted networks | none | Wi-Fi networks on which MacLock stops watching altogether. |
 | Passive mode | off | Read the watch's ordinary broadcasts instead of connecting to it. |
 | Open MacLock at login | off | Registers MacLock as a login item. |
 
@@ -63,6 +68,31 @@ That gives a steady sample rate, but connecting can disturb other Bluetooth devi
 keyboards, mice, Personal Hotspot. If yours start misbehaving, switch on passive mode:
 MacLock then only listens to broadcasts the watch already sends. It updates less
 often and never holds a connection open.
+
+### Networks you do not need guarding on
+
+At home, a Mac that locks every time you walk to the kitchen is a nuisance rather than
+a safeguard. So the **Networks** tab in Settings holds a list of Wi-Fi networks on
+which MacLock stops watching entirely: no Bluetooth sampling, and a dimmed menu bar
+icon whose first line names the network it has stood down for. Leave that network and
+it starts guarding again on the next tick.
+
+Add the network you are on with one click, or type one to trust a network this Mac is
+not on right now. Names are matched **exactly**, capitals included, because standing
+down means giving up the app's whole job and a network that merely resembles yours is
+not good enough evidence to do it on.
+
+This needs **Location access**, which is not a design choice. macOS classes the name of
+the network you are joined to as location data: since macOS 14 the system returns no
+name at all to an app without that permission. The Networks tab offers a button to
+grant it, MacLock never reads a location, and it stops the location service the moment
+the permission question is answered.
+
+**If MacLock cannot read the network name, it keeps guarding.** Location access refused,
+Wi-Fi switched off, joined to nothing, no Wi-Fi hardware — in every one of those it has
+no evidence it is somewhere you trust, and it will not stand down on a guess. Settings
+says which of them applies, so a feature that is waiting on a permission never looks
+like a feature that is broken.
 
 ## Why signal strength, not metres
 
