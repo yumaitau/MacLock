@@ -37,10 +37,11 @@ MacLock lives only in the menu bar — there is no Dock icon and no main window.
    reading, sorted by name.
 3. Find your watch. If several entries look plausible, move the watch closer and
    further away — the one whose number tracks it is yours. Click to select it.
-4. Calibrate. Walk to the point where you want the Mac to lock, look at **Smoothed
-   signal now**, and set **Lock below** just above that value. The reading turns
-   orange once it sits below the threshold, which is the state that starts the
-   countdown.
+4. Calibrate. Walk to the point where you want the Mac to lock and watch the bar under
+   **Lock below**: it is the live smoothed signal, and the mark across it is the
+   threshold, sitting directly under the slider's knob. Set the threshold so the bar
+   sits just short of the mark where you are standing. A bar short of the mark is the
+   state that starts the countdown, and it turns orange to say so.
 
 5. Optionally, open **Networks** and name the Wi-Fi networks you do not want guarding
    on. See *Networks you do not need guarding on* below.
@@ -58,8 +59,10 @@ Your choice and settings persist across relaunches.
 | Passive mode | off | Read the watch's ordinary broadcasts instead of connecting to it. |
 | Open MacLock at login | off | Registers MacLock as a login item. |
 
-The menu also offers **Pause Monitoring** for when the watch is elsewhere but you are
-not, and **Lock Screen Now**.
+The menu bar panel leads with whether MacLock is guarding this Mac right now, the watch
+it is watching, and that watch's signal against the lock threshold. Below that it offers
+**Pause Monitoring** for when the watch is elsewhere but you are not, and **Lock Screen
+Now**.
 
 ### Active and passive mode
 
@@ -74,8 +77,8 @@ often and never holds a connection open.
 At home, a Mac that locks every time you walk to the kitchen is a nuisance rather than
 a safeguard. So the **Networks** tab in Settings holds a list of Wi-Fi networks on
 which MacLock stops watching entirely: no Bluetooth sampling, and a dimmed menu bar
-icon whose first line names the network it has stood down for. Leave that network and
-it starts guarding again on the next tick.
+icon whose panel reads "Not guarding" and names the network it has stood down for. Leave
+that network and it starts guarding again on the next tick.
 
 Add the network you are on with one click, or type one to trust a network this Mac is
 not on right now. Names are matched **exactly**, capitals included, because standing
@@ -114,8 +117,8 @@ positive: smoothing, a threshold, and a dwell time.
 | The same icon, dimmed | Not watching — paused, or no watch selected |
 | Display with a warning triangle | Cannot work: Bluetooth is off or unauthorised, or the lock mechanism is unavailable |
 
-Nearby, away and locked share one glyph; the first line of the menu always spells the
-state out.
+Nearby, away and locked share one glyph; the panel behind the icon always spells the
+state out, starting with whether you are being guarded.
 
 **MacLock never locks when it cannot see the watch.** Bluetooth switched off, no watch
 chosen, monitoring paused — in each of those it has no evidence about where you are,

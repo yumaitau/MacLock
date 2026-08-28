@@ -51,6 +51,10 @@ struct MacLockApp: App {
             )
             .accessibilityLabel(controller.status.label)
         }
+        // A window rather than a menu: the panel leads with live state -- signal
+        // strength drawn against the lock threshold -- and a menu can only hold
+        // rows of text.
+        .menuBarExtraStyle(.window)
 
         Settings {
             SettingsView(

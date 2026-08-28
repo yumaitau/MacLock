@@ -19,28 +19,15 @@ struct TrustedNetworksView: View {
     @State private var typedName = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Trusted Networks")
-                .font(.headline)
-
-            Text("MacLock stops watching your watch while this Mac is on one of these networks, and starts again as soon as it is not. The menu bar icon dims to show it is no longer guarding.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            currentNetwork
-
-            Divider()
-
-            trustedList
-
-            addByName
-
-            Spacer(minLength: 0)
+        Form {
+            currentNetworkSection
+            trustedListSection
+            addByNameSection
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .formStyle(.grouped)
     }
+
+    // MARK: - Current network
 
     /// The network this Mac is on, or the reason there is no name to show.
     ///
@@ -48,35 +35,73 @@ struct TrustedNetworksView: View {
     /// watching, and a user who cannot see why would read a feature that never
     /// triggers as a broken one.
     @ViewBuilder
-    private var currentNetwork: some View {
-        if let name = wifi.network.ssid {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Currently on")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(name)
-                        .font(.subheadline)
-                }
-                Spacer()
-                Button("Trust This Network") {
-                    settings.addTrustedNetwork(name)
-                }
-                .disabled(settings.trustedNetworks.contains(name))
+    private var currentNetworkSection: some View {
+        Section {
+            if let name = wifi.network.ssid {
+                joinedNetworkRow(name)
+            } else {
+                unavailableNetworkRow
             }
-        } else {
-            VStack(alignment: .leading, spacing: 10) {
-                Label(wifi.network.unavailabilityMessage ?? "", systemImage: "wifi.slash")
-                    .font(.subheadline)
+        } header: {
+            Text("Current Network")
+        }
+    }
+
+    private func joinedNetworkRow(_ name: String) -> some View {
+        let isTrusted = settings.trustedNetworks.contains(name)
+
+        return HStack(alignment: .center, spacing: 12) {
+            Image(systemName: isTrusted ? "wifi.circle.fill" : "wifi.circle")
+                .font(.system(size: 24))
+                .foregroundStyle(isTrusted ? Color.blue : Color.secondary)
+                .symbolRenderingMode(.hierarchical)
+                .frame(width: 30, alignment: .center)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(name)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                Text(isTrusted
+                     ? "Trusted - MacLock stands down while you are on this network."
+                     : "Not trusted - MacLock keeps watching your watch here.")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
-                if wifi.network == .needsLocationAccess {
-                    locationAccessAction
-                }
+            Spacer(minLength: 8)
+
+            Button("Trust This Network") {
+                settings.addTrustedNetwork(name)
+            }
+            .disabled(isTrusted)
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var unavailableNetworkRow: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 24))
+                .foregroundStyle(.secondary)
+                .symbolRenderingMode(.hierarchical)
+                .frame(width: 30, alignment: .center)
+                .accessibilityHidden(true)
+
+            Text(wifi.network.unavailabilityMessage ?? "")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if wifi.network == .needsLocationAccess {
+                locationAccessAction
             }
         }
+        .padding(.vertical, 2)
     }
 
     /// The system prompts once and never again, so a refusal has to be sent to
@@ -85,11 +110,11 @@ struct TrustedNetworksView: View {
     private var locationAccessAction: some View {
         switch wifi.locationAccess {
         case .notAsked:
-            Button("Grant Location Access...") {
+            Button("Grant Access…") {
                 wifi.requestLocationAccess()
             }
         case .refused:
-            Button("Open Location Services Settings...") {
+            Button("Open Settings…") {
                 if let url = URL(string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_LocationServices") {
                     NSWorkspace.shared.open(url)
                 }
@@ -99,48 +124,65 @@ struct TrustedNetworksView: View {
         }
     }
 
+    // MARK: - The list
+
     @ViewBuilder
-    private var trustedList: some View {
-        if settings.trustedNetworks.isEmpty {
-            Text("No trusted networks yet - MacLock watches your watch everywhere.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, minHeight: 160, alignment: .topLeading)
-        } else {
-            List {
+    private var trustedListSection: some View {
+        Section {
+            if settings.trustedNetworks.isEmpty {
+                Label("No trusted networks yet - MacLock watches your watch everywhere.", systemImage: "globe")
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.vertical, 2)
+            } else {
                 ForEach(settings.trustedNetworks, id: \.self) { name in
-                    HStack {
+                    HStack(spacing: 8) {
+                        Image(systemName: "wifi")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 16)
+                            .accessibilityHidden(true)
+
                         Text(name)
-                        Spacer()
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+
+                        Spacer(minLength: 8)
+
                         Button {
                             settings.removeTrustedNetwork(name)
                         } label: {
                             Image(systemName: "minus.circle.fill")
                                 .foregroundStyle(.secondary)
+                                .imageScale(.large)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Stop trusting \(name)")
                     }
                 }
             }
-            .frame(minHeight: 160)
+
+            SectionCaption("MacLock stops watching your watch while this Mac is on one of these networks, and starts again as soon as it is not. The menu bar icon dims to show it is no longer guarding.")
+        } header: {
+            Text("Trusted Networks")
         }
     }
 
-    private var addByName: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
+    // MARK: - Adding by name
+
+    private var addByNameSection: some View {
+        Section {
+            HStack(spacing: 8) {
                 TextField("Network name", text: $typedName)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit(addTypedNetwork)
+
                 Button("Add", action: addTypedNetwork)
                     .disabled(normalizedNetworkName(typedName) == nil)
             }
-
-            Text("Type a name to trust a network this Mac is not on right now - your office, say. Names are matched exactly, capitals included.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 2)
+            SectionCaption("Trust a network this Mac is not on right now - your office, say. Names are matched exactly, capitals included.")
+        } header: {
+            Text("Add by Name")
         }
     }
 
