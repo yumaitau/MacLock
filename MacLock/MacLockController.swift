@@ -5,6 +5,7 @@
 
 import AppKit
 import Foundation
+import OSLog
 
 /// Drives monitoring: feeds samples into the proximity engine, acts on its lock
 /// decisions, and publishes the state the menu bar shows.
@@ -24,6 +25,7 @@ final class MacLockController {
         case cannotMonitor(String)
         case noDevice
         case paused
+        case onTrustedNetwork(String)
         case locked
         case away
         case inRange
@@ -46,7 +48,7 @@ final class MacLockController {
         var isGuarding: Bool {
             switch self {
             case .inRange, .away, .locked, .waitingForSignal: true
-            case .cannotLock, .cannotMonitor, .noDevice, .paused: false
+            case .cannotLock, .cannotMonitor, .noDevice, .paused, .onTrustedNetwork: false
             }
         }
 
@@ -56,10 +58,28 @@ final class MacLockController {
             case .cannotMonitor(let reason): reason
             case .noDevice: "No watch selected"
             case .paused: "Monitoring paused"
+            case .onTrustedNetwork(let name): "On \"\(name)\" - not watching"
             case .locked: "Locked"
             case .away: "Watch is away"
             case .inRange: "Watch is nearby"
             case .waitingForSignal: "Looking for your watch"
+            }
+        }
+
+        /// A short name for the log, carrying no user data -- no network name, no
+        /// system message. It makes the decision trail readable after the fact
+        /// without recording where this Mac has been.
+        var logDescription: String {
+            switch self {
+            case .cannotLock: "cannotLock"
+            case .cannotMonitor: "cannotMonitor"
+            case .noDevice: "noDevice"
+            case .paused: "paused"
+            case .onTrustedNetwork: "onTrustedNetwork"
+            case .locked: "locked"
+            case .away: "away"
+            case .inRange: "inRange"
+            case .waitingForSignal: "waitingForSignal"
             }
         }
     }
@@ -67,6 +87,16 @@ final class MacLockController {
     private let settings: AppSettings
     private let monitor: WatchMonitor
     private let screenLocker: ScreenLocker
+    private let wifi: WiFiMonitor
+
+    /// Why MacLock started or stopped watching, and every lock it asked for. A
+    /// utility that locks your Mac on its own should be able to answer "why did it
+    /// do that" afterwards, not only while someone is looking at the menu bar.
+    ///
+    /// Logged at notice rather than info: info is held in memory and dropped, so a
+    /// trail meant to be read after the fact has to be at a level the system keeps.
+    private let log = Logger(subsystem: "au.com.yumait.MacLock", category: "Monitoring")
+    private var lastLoggedStatus: Status?
 
     private var engine: ProximityEngine
     private var timer: Timer?
@@ -83,10 +113,16 @@ final class MacLockController {
     /// much to aim at.
     private(set) var smoothedRSSI: Int?
 
-    init(settings: AppSettings, monitor: WatchMonitor, screenLocker: ScreenLocker) {
+    init(
+        settings: AppSettings,
+        monitor: WatchMonitor,
+        screenLocker: ScreenLocker,
+        wifi: WiFiMonitor
+    ) {
         self.settings = settings
         self.monitor = monitor
         self.screenLocker = screenLocker
+        self.wifi = wifi
         self.engine = ProximityEngine(configuration: settings.proximityConfiguration)
 
         monitor.onSample = { [weak self] rssi, time in
@@ -150,6 +186,10 @@ final class MacLockController {
     private func tick() {
         engine.configuration = settings.proximityConfiguration
 
+        // One clock drives every periodic read, so the Wi-Fi network and the
+        // proximity decision within a tick always describe the same moment.
+        wifi.refresh()
+
         // Unlocking means the user is back, so the dwell starts fresh. This also
         // covers a wake that never locked the screen.
         let locked = screenLocker.screenIsLocked
@@ -200,7 +240,8 @@ final class MacLockController {
     }
 
     private func act(on decision: LockReason?) {
-        guard decision != nil else { return }
+        guard let decision else { return }
+        log.notice("Locking the screen: \(String(describing: decision), privacy: .public)")
         screenLocker.lock()
     }
 
@@ -210,6 +251,10 @@ final class MacLockController {
             canLock: screenLocker.availability == .available,
             hasDevice: settings.selectedDeviceID != nil,
             isPaused: settings.isPaused,
+            onTrustedNetwork: isOnTrustedNetwork(
+                ssid: wifi.network.ssid,
+                trusted: settings.trustedNetworks
+            ),
             bluetoothAvailable: monitor.unavailability == nil
         )
     }
@@ -227,6 +272,10 @@ final class MacLockController {
                 status = .noDevice
             case .paused:
                 status = .paused
+            case .trustedNetwork:
+                // The gate only reaches here on a name that matched a trusted entry,
+                // so there is a name to show.
+                status = .onTrustedNetwork(wifi.network.ssid ?? "")
             case .cannotMonitor:
                 status = .cannotMonitor(monitor.unavailability?.message ?? "")
             }
@@ -238,6 +287,12 @@ final class MacLockController {
             status = .away
         } else {
             status = .inRange
+        }
+
+        if status != lastLoggedStatus {
+            lastLoggedStatus = status
+            let description = status.logDescription
+            log.notice("Monitoring state: \(description, privacy: .public)")
         }
     }
 }

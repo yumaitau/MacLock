@@ -20,6 +20,7 @@ final class AppSettings {
         static let awayDelay = "awayDelay"
         static let noSignalTimeout = "noSignalTimeout"
         static let usePassiveMode = "usePassiveMode"
+        static let trustedNetworks = "trustedNetworks"
         static let isPaused = "isPaused"
         static let launchAtLogin = "launchAtLogin"
     }
@@ -74,6 +75,16 @@ final class AppSettings {
         didSet { defaults.set(usePassiveMode, forKey: Key.usePassiveMode) }
     }
 
+    /// Wi-Fi networks on which MacLock stops watching altogether.
+    ///
+    /// Names are stored exactly as they must match, already trimmed, because the
+    /// comparison against the live network is exact -- see `TrustedNetworks`. Use
+    /// ``addTrustedNetwork(_:)`` rather than appending, so nothing unmatched by any
+    /// real network can get into the list.
+    var trustedNetworks: [String] {
+        didSet { defaults.set(trustedNetworks, forKey: Key.trustedNetworks) }
+    }
+
     /// Monitoring suspended by the user. Persisted so a pause survives a relaunch.
     var isPaused: Bool {
         didSet { defaults.set(isPaused, forKey: Key.isPaused) }
@@ -99,9 +110,27 @@ final class AppSettings {
         let storedTimeout = defaults.object(forKey: Key.noSignalTimeout) as? TimeInterval ?? Defaults.noSignalTimeout
         self.noSignalTimeout = storedTimeout.clamped(to: Limits.noSignalTimeout)
 
+        self.trustedNetworks = defaults.stringArray(forKey: Key.trustedNetworks) ?? []
         self.usePassiveMode = defaults.bool(forKey: Key.usePassiveMode)
         self.isPaused = defaults.bool(forKey: Key.isPaused)
         self.launchAtLogin = defaults.bool(forKey: Key.launchAtLogin)
+    }
+
+    /// Adds a network to the trusted list, and reports whether it took.
+    ///
+    /// A name that is blank once trimmed is refused: an empty entry would sit in the
+    /// list looking like protection while matching nothing. Adding one already in the
+    /// list succeeds and changes nothing -- the user asked for it to be trusted, and
+    /// it is.
+    @discardableResult
+    func addTrustedNetwork(_ raw: String) -> Bool {
+        guard let updated = addingTrustedNetwork(raw, to: trustedNetworks) else { return false }
+        trustedNetworks = updated
+        return true
+    }
+
+    func removeTrustedNetwork(_ name: String) {
+        trustedNetworks = removingTrustedNetwork(name, from: trustedNetworks)
     }
 
     /// The tuning values in the shape the proximity engine wants.
