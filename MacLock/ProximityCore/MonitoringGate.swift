@@ -11,6 +11,8 @@ public nonisolated enum StandDownReason: Sendable, Equatable {
     case noDevice
     /// The user paused monitoring.
     case paused
+    /// The Mac is on a Wi-Fi network the user marked trusted.
+    case trustedNetwork
     /// Bluetooth is off, unauthorised or unsupported.
     case cannotMonitor
 }
@@ -26,12 +28,20 @@ public nonisolated struct MonitoringInputs: Sendable, Equatable {
     public var canLock: Bool
     public var hasDevice: Bool
     public var isPaused: Bool
+    public var onTrustedNetwork: Bool
     public var bluetoothAvailable: Bool
 
-    public init(canLock: Bool, hasDevice: Bool, isPaused: Bool, bluetoothAvailable: Bool) {
+    public init(
+        canLock: Bool,
+        hasDevice: Bool,
+        isPaused: Bool,
+        onTrustedNetwork: Bool,
+        bluetoothAvailable: Bool
+    ) {
         self.canLock = canLock
         self.hasDevice = hasDevice
         self.isPaused = isPaused
+        self.onTrustedNetwork = onTrustedNetwork
         self.bluetoothAvailable = bluetoothAvailable
     }
 }
@@ -44,11 +54,15 @@ public nonisolated struct MonitoringInputs: Sendable, Equatable {
 /// branching can be tested without Bluetooth, a screen or a clock.
 ///
 /// The order matters: it is also the precedence the menu bar icon uses, so the most
-/// fundamental problem is the one reported.
+/// fundamental problem is the one reported. A trusted network sits below the three
+/// states the user can act on and above Bluetooth, because it is not a problem at
+/// all: MacLock has been told not to watch here, and reporting a radio it does not
+/// currently need would be noise dressed as a warning.
 public nonisolated func monitoringDecision(_ inputs: MonitoringInputs) -> MonitoringDecision {
     if !inputs.canLock { return .standDown(.cannotLock) }
     if !inputs.hasDevice { return .standDown(.noDevice) }
     if inputs.isPaused { return .standDown(.paused) }
+    if inputs.onTrustedNetwork { return .standDown(.trustedNetwork) }
     if !inputs.bluetoothAvailable { return .standDown(.cannotMonitor) }
     return .monitor
 }

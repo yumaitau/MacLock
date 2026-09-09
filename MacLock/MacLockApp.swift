@@ -12,21 +12,25 @@ struct MacLockApp: App {
     @State private var settings: AppSettings
     @State private var screenLocker: ScreenLocker
     @State private var monitor: WatchMonitor
+    @State private var wifi: WiFiMonitor
     @State private var controller: MacLockController
 
     init() {
         let settings = AppSettings()
         let monitor = WatchMonitor()
         let screenLocker = ScreenLocker()
+        let wifi = WiFiMonitor()
         let controller = MacLockController(
             settings: settings,
             monitor: monitor,
-            screenLocker: screenLocker
+            screenLocker: screenLocker,
+            wifi: wifi
         )
 
         _settings = State(initialValue: settings)
         _monitor = State(initialValue: monitor)
         _screenLocker = State(initialValue: screenLocker)
+        _wifi = State(initialValue: wifi)
         _controller = State(initialValue: controller)
 
         // The app has no window to hang an onAppear from, so monitoring starts here.
@@ -47,9 +51,18 @@ struct MacLockApp: App {
             )
             .accessibilityLabel(controller.status.label)
         }
+        // A window rather than a menu: the panel leads with live state -- signal
+        // strength drawn against the lock threshold -- and a menu can only hold
+        // rows of text.
+        .menuBarExtraStyle(.window)
 
         Settings {
-            SettingsView(settings: settings, monitor: monitor, controller: controller)
+            SettingsView(
+                settings: settings,
+                monitor: monitor,
+                wifi: wifi,
+                controller: controller
+            )
         }
     }
 
