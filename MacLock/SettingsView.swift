@@ -15,6 +15,7 @@ struct SettingsView: View {
     var monitor: WatchMonitor
     var wifi: WiFiMonitor
     var controller: MacLockController
+    @Bindable var updater: AppUpdater
 
     /// Whether the device list is expanded past ``collapsedDeviceLimit``.
     @State private var showsAllDevices = false
@@ -45,6 +46,8 @@ struct SettingsView: View {
             calibrationSection
 
             optionsSection
+
+            updatesSection
         }
         .formStyle(.grouped)
         .onAppear {
@@ -259,6 +262,28 @@ struct SettingsView: View {
             Toggle("Open MacLock at login", isOn: launchAtLoginBinding)
         } header: {
             Text("Options")
+        }
+    }
+
+    // MARK: - Updates
+
+    /// The toggle writes straight through to Sparkle's own setting; see `AppUpdater`.
+    private var updatesSection: some View {
+        Section {
+            Toggle("Check for updates automatically", isOn: $updater.automaticallyChecksForUpdates)
+
+            LabeledContent("Version") {
+                HStack(spacing: 12) {
+                    Text(updater.currentVersion)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+
+                    Button("Check for Updates…", action: updater.checkForUpdates)
+                        .disabled(!updater.canCheckForUpdates)
+                }
+            }
+        } header: {
+            Text("Updates")
         }
     }
 

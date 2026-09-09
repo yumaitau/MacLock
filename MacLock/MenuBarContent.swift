@@ -16,6 +16,7 @@ struct MenuBarContent: View {
     @Bindable var settings: AppSettings
     var controller: MacLockController
     var screenLocker: ScreenLocker
+    var updater: AppUpdater
 
     var body: some View {
         VStack(spacing: 10) {
@@ -47,6 +48,26 @@ struct MenuBarContent: View {
                     PanelRowLabel(title: "Settings…", systemImage: "gearshape")
                 }
                 .buttonStyle(PanelRowButtonStyle())
+
+                // A scheduled check that found something is a row the user cannot
+                // miss next time they open the panel; see `AppUpdater`. Choosing it
+                // brings Sparkle's own alert forward, which is what a check does when
+                // an update is already waiting.
+                if let version = updater.pendingUpdateVersion {
+                    PanelButtonRow(
+                        title: "Update to MacLock \(version)…",
+                        systemImage: "arrow.down.circle.fill",
+                        action: updater.checkForUpdates
+                    )
+                    .foregroundStyle(Color.accentColor)
+                } else {
+                    PanelButtonRow(
+                        title: "Check for Updates…",
+                        systemImage: "arrow.triangle.2.circlepath",
+                        action: updater.checkForUpdates
+                    )
+                    .disabled(!updater.canCheckForUpdates)
+                }
 
                 PanelButtonRow(title: "Quit MacLock", systemImage: "power") {
                     NSApplication.shared.terminate(nil)

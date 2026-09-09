@@ -6,13 +6,30 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		03132B90303D2DD800F4592B /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 03132B91303D2DD800F4592B /* Sparkle */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		03132B75303D2DD800F4592B /* MacLock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacLock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		03132B93303D2DD800F4592B /* Exceptions for "MacLock" folder in "MacLock" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 03132B74303D2DD800F4592B /* MacLock */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		03132B77303D2DD800F4592B /* MacLock */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				03132B93303D2DD800F4592B /* Exceptions for "MacLock" folder in "MacLock" target */,
+			);
 			path = MacLock;
 			sourceTree = "<group>";
 		};
@@ -23,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03132B90303D2DD800F4592B /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +83,7 @@
 			);
 			name = MacLock;
 			packageProductDependencies = (
+				03132B91303D2DD800F4592B /* Sparkle */,
 			);
 			productName = MacLock;
 			productReference = 03132B75303D2DD800F4592B /* MacLock.app */;
@@ -94,6 +113,9 @@
 			);
 			mainGroup = 03132B6C303D2DD800F4592B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				03132B92303D2DD800F4592B /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 03132B76303D2DD800F4592B /* Products */;
 			projectDirPath = "";
@@ -261,6 +283,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MacLock/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "MacLock uses Bluetooth to sense whether your selected Apple Watch is nearby, so it can lock your Mac when you walk away.";
@@ -301,6 +324,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MacLock/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "MacLock uses Bluetooth to sense whether your selected Apple Watch is nearby, so it can lock your Mac when you walk away.";
@@ -347,6 +371,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		03132B92303D2DD800F4592B /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		03132B91303D2DD800F4592B /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 03132B92303D2DD800F4592B /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 03132B6D303D2DD800F4592B /* Project object */;
 }

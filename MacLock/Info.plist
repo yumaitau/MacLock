@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Only the keys Xcode cannot generate live here. Everything else (bundle
+	     identifier, version, usage descriptions, LSUIElement) still comes from the
+	     INFOPLIST_KEY_* build settings and is merged in at build time, because
+	     GENERATE_INFOPLIST_FILE stays on. -->
+
+	<!-- Sparkle: where MacLock looks for releases. Each GitHub release carries an
+	     appcast.xml asset, and this URL always resolves to the latest one. -->
+	<key>SUFeedURL</key>
+	<string>https://github.com/yumaitau/MacLock/releases/latest/download/appcast.xml</string>
+
+	<!-- Sparkle: the public half of the EdDSA key that signs every update archive.
+	     The private half lives in the release machine's login keychain under
+	     "Private key for signing Sparkle updates"; `generate_keys -p` prints this
+	     value. An update whose signature does not verify against it is refused. -->
+	<key>SUPublicEDKey</key>
+	<string>rpyXuyIpdh2Shc2dyJeHsCy/geLBSPnPlckMHQaFZWY=</string>
+
+	<!-- Sparkle: check on a schedule without first asking permission. Sparkle would
+	     otherwise raise that question on the second launch, and a menu bar app with
+	     no window is a poor place for it. Settings carries the toggle instead. -->
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+</dict>
+</plist>

@@ -58,11 +58,26 @@ Your choice and settings persist across relaunches.
 | Trusted networks | none | Wi-Fi networks on which MacLock stops watching altogether. |
 | Passive mode | off | Read the watch's ordinary broadcasts instead of connecting to it. |
 | Open MacLock at login | off | Registers MacLock as a login item. |
+| Check for updates automatically | on | Looks for a new release about once a day. See *Updates* below. |
 
 The menu bar panel leads with whether MacLock is guarding this Mac right now, the watch
 it is watching, and that watch's signal against the lock threshold. Below that it offers
-**Pause Monitoring** for when the watch is elsewhere but you are not, and **Lock Screen
-Now**.
+**Pause Monitoring** for when the watch is elsewhere but you are not, **Lock Screen
+Now**, and **Check for Updates…**.
+
+### Updates
+
+MacLock updates itself with [Sparkle](https://sparkle-project.org). About once a day it
+fetches the release feed and, if there is a newer version, shows the usual Sparkle
+dialog offering to install it and relaunch. Nothing is downloaded until you accept.
+**Check for Updates…** in the menu bar panel, or the button beside the version number
+at the bottom of the Watch tab in Settings, runs the same check on demand and tells you
+either way. Switch off *Check for updates automatically* in Settings to keep the
+scheduled check from running; the manual one still works.
+
+Every update archive is signed with an EdDSA key whose public half is built into the
+app, and Sparkle refuses an archive whose signature does not verify against it. Because
+MacLock is not on the Mac App Store, this is the only way it can be kept current.
 
 ### Active and passive mode
 
@@ -141,6 +156,42 @@ root `Package.swift` through an explicit target path. The Xcode target picks the
 through its file-system-synchronised group, so the same files compile in both places
 and neither a test target nor a package reference is needed. The manifest pins Swift 5
 language mode to match the app target.
+
+## Publishing a release
+
+The app reads its feed from
+`https://github.com/yumaitau/MacLock/releases/latest/download/appcast.xml`, so a
+release is a GitHub release carrying two assets: the zipped app and the appcast. The
+key that signs them lives in the release machine's login keychain under *Private key for
+signing Sparkle updates*; `generate_keys -p` (from the Sparkle package's `bin/`, found
+under DerivedData once the project has built) prints the matching public key, which must
+equal `SUPublicEDKey` in `MacLock/Info.plist`.
+
+1. Bump `MARKETING_VERSION` (what people see) **and** `CURRENT_PROJECT_VERSION` (what
+   Sparkle compares) in the project. Sparkle only offers an update whose
+   `CURRENT_PROJECT_VERSION` is higher than the running one, so the build number must
+   increase every release.
+2. Product › Archive in Xcode, then *Distribute App* › *Direct Distribution* to get a
+   notarised `MacLock.app`. Notarisation is not optional: an unnotarised update fails
+   Gatekeeper on the user's Mac after Sparkle installs it.
+3. Package and sign it:
+
+   ```sh
+   Scripts/generate-appcast.sh /path/to/MacLock.app dist
+   ```
+
+   This zips the app with `ditto` (so the symlinks inside `Sparkle.framework` survive),
+   signs the zip with the key from the keychain, and writes `dist/appcast.xml` with the
+   enclosure pointing at `https://github.com/yumaitau/MacLock/releases/download/v<version>/`.
+   The first run asks for the login keychain password so `generate_appcast` may read
+   the key; *Always Allow* ends that. For an unattended machine, export the key once
+   with `generate_keys -x <file>` and set `SPARKLE_ED_KEY_FILE` to it.
+4. Create the GitHub release tagged `v<version>` and upload `dist/MacLock-<version>.zip`
+   and `dist/appcast.xml` to it.
+
+Running apps pick the release up on their next scheduled check. To test a feed before
+publishing it, pass a third argument to the script with a local URL prefix and serve the
+output directory over HTTP from a build whose `SUFeedURL` points there.
 
 ## How it locks
 
