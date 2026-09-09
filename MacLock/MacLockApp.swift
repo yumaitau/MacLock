@@ -14,6 +14,7 @@ struct MacLockApp: App {
     @State private var monitor: WatchMonitor
     @State private var wifi: WiFiMonitor
     @State private var controller: MacLockController
+    @State private var updater: AppUpdater
 
     init() {
         let settings = AppSettings()
@@ -26,12 +27,14 @@ struct MacLockApp: App {
             screenLocker: screenLocker,
             wifi: wifi
         )
+        let updater = AppUpdater()
 
         _settings = State(initialValue: settings)
         _monitor = State(initialValue: monitor)
         _screenLocker = State(initialValue: screenLocker)
         _wifi = State(initialValue: wifi)
         _controller = State(initialValue: controller)
+        _updater = State(initialValue: updater)
 
         // The app has no window to hang an onAppear from, so monitoring starts here.
         controller.start()
@@ -42,7 +45,8 @@ struct MacLockApp: App {
             MenuBarContent(
                 settings: settings,
                 controller: controller,
-                screenLocker: screenLocker
+                screenLocker: screenLocker,
+                updater: updater
             )
         } label: {
             Self.menuBarIcon(
@@ -61,7 +65,8 @@ struct MacLockApp: App {
                 settings: settings,
                 monitor: monitor,
                 wifi: wifi,
-                controller: controller
+                controller: controller,
+                updater: updater
             )
         }
     }
